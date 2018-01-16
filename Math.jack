@@ -19,24 +19,47 @@ class Math{
 		let twoToThe[12] = 4096;
 		let twoToThe[13] = 8192;
 		let twoToThe[14] = 16384;
-		let twoToThe[15] = 16384+16384;
+		let twoToThe[15] = 32768;
 		return;
 	}
 
 	function int abs(int x){
+		if (x<0){
+			let x = -x;
+			return x;
+		}
+		return x;
+	}
+	
+	function int min(int x, int y){
+		if (x < y){
+			return x;
+		}
+		return y;
+	}
+	
+	function int max(int x,int y){
+		if (x > y){
+			return x;
+		}
+		return y;
 	}
 	
 	function int multiply(int x, int y){
+		int sum;
+		int shiftedX;
+		int i;
+		
+		let sum = 0;
+		let shiftedX = x;
+		let i =0;
+		while( i 
 	}
 	
 	function int divide(int x, int y){
 	}
 	
-	function int min(int x, int y){
-	}
-	
-	function int max(int x,int y){
-	}
+
 	
 	function int sqrt(int x){
 	}
