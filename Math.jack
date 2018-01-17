@@ -1,8 +1,17 @@
-class Math{
-	
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/12/Math.jack
+
+/**
+ * A library of commonly used mathematical functions.
+ * Note: Jack compilers implement multiplication and division using OS method calls.
+ */
+class Math {
 	static Array twoToThe;
-	
-	function void init(){
+
+    /** Initializes the library. */
+    function void init() {
 		let twoToThe = Array.new(16);
 		let twoToThe[0] = 1;
 		let twoToThe[1] = 2;
@@ -19,37 +28,25 @@ class Math{
 		let twoToThe[12] = 4096;
 		let twoToThe[13] = 8192;
 		let twoToThe[14] = 16384;
-		let twoToThe[15] = 32768;
+		let twoToThe[15] = 16384+16384;
 		return;
-	}
+    }
 	
 	function boolean bit(int x, int j){
 		var boolean flag;
 		let flag = x & twoToThe[j];
 		return flag;
 	}
-
-	function int abs(int x){
+	
+    /** Returns the absolute value of x. */
+    function int abs(int x) {
 		if (x<0){
 			let x = -x;
 			return x;
 		}
 		return x;
-	}
-	
-	function int min(int x, int y){
-		if (x < y){
-			return x;
-		}
-		return y;
-	}
-	
-	function int max(int x,int y){
-		if (x > y){
-			return x;
-		}
-		return y;
-	}
+    }
+
 	
 	function boolean isSameSighn(int x, int y){
 		if (x<0 & y<0){
@@ -66,38 +63,48 @@ class Math{
 		return num;
 		}
 		
-	function int multiply(int x, int y){
+    /** Returns the product of x and y. 
+     *  When a Jack compiler detects the multiplication operator '*' in the 
+     *  program's code, it handles it by invoking this method. In other words,
+     *  the Jack expressions x*y and multiply(x,y) return the same value.
+     */
+    function int multiply(int x, int y) {
 		var int sum;
 		var int shiftedX;
 		var int i;
 		var boolean bitFlag;
 		var boolean SameSighn;
 		
-		let SameSighn = isSameSighn(x,y);
-		let x = abs(x);
-		let y = abs(y);
+		let SameSighn = Math.isSameSighn(x,y);
+		let x = Math.abs(x);
+		let y = Math.abs(y);
 		let sum = 0;
 		let shiftedX = x;
 		let i = 0;
 		
 		while (i < 16){
-			let bitFlag = bit (y, i);
-			if (bitFlag = 1){
+			let bitFlag = Math.bit(y, i);
+			if (bitFlag){
 				let sum = sum + shiftedX;
 			}
-			let shiftedX = mulByTwo(shiftedX);
+			let shiftedX = Math.mulByTwo(shiftedX);
 			let i = i + 1;
 		}
 		
-		if (SameSighn = true){
+		if (SameSighn){
 			return sum;
 		}
 		
 		let sum = -sum;
 		return sum;
-	}
-	
-	function int divide(int x, int y){
+    }
+
+    /** Returns the integer part of x/y.
+     *  When a Jack compiler detects the multiplication operator '/' in the 
+     *  program's code, it handles it by invoking this method. In other words,
+     *  the Jack expressions x/y and divide(x,y) return the same value.
+     */
+    function int divide(int x, int y) {
 		var int q;
 		var boolean SameSighn;
 				
@@ -108,12 +115,12 @@ class Math{
 			return 0;
 		}
 		
-		let SameSighn = SameSighn(x,y);
-		let x = abs(x);
-		let y = abs(y);
+		let SameSighn = Math.SameSighn(x,y);
+		let x = Math.abs(x);
+		let y = Math.abs(y);
 
-		let q = divideHelper(x,y);
-		if (SameSighn = true){
+		let q = Math.divideHelper(x,y);
+		if (SameSighn){
 			return q;
 		}
 		
@@ -134,10 +141,10 @@ class Math{
 			return 0;
 		}
 		
-		let y = mulByTwo(y);
-		let q = divideHelper(x,y);
-		let twoq =  mulByTwo(twoq);
-		let qMuly = multiply(twoq,y);
+		let y = Math.mulByTwo(y);
+		let q = Math.divideHelper(x,y);
+		let twoq =  Math.mulByTwo(twoq);
+		let qMuly = Math.multiply(twoq,y);
 		if ((x-qMuly)<y){
 			return twoq;
 			}
@@ -147,8 +154,10 @@ class Math{
 		}
 			
 	}
-	
-	function int sqrt(int x){
+    
+
+    /** Returns the integer part of the square root of x. */
+    function int sqrt(int x) {
 		var int y;
 		var int beforSqrt;
 		
@@ -166,3 +175,24 @@ class Math{
 		}
 		return y;
 	}
+	
+
+    /** Returns the greater number. */
+    function int max(int a, int b) {
+		if (x > y){
+			return x;
+		}
+		return y;
+    }
+
+    /** Returns the smaller number. */
+    function int min(int a, int b) {
+		if (x < y){
+			return x;
+		}
+		return y;
+    }
+	
+	
+	
+}
