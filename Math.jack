@@ -25,7 +25,7 @@ class Math {
     }
 	
 	function int powerOfTwo(int j){
-		if((j>-1)|(j<16)){
+		if((j>-1)&(j<16)){
 			return twoToThe[j]; 
 			}
 		return 0;
