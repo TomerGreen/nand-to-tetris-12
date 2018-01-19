@@ -160,28 +160,29 @@ class Math {
 	}
 			
 	function int divideHelper(int x, int y){
-		var int q;
-		var int qMuly;
-		var int twoq;
-		var int z;
+		var int result;
+		var int numShift;
+		var int shiftDivisor;
+		var int beforShiftDivisor;
 		
-		if ((y>x)|(y<0)){
-			return 0;
+		let result =0;
+		while(x+1>y){
+			let numShift = 0;
+			let shiftDivisor = y;
+			while ( x +1 > shiftDivisor){
+		
+				let beforShiftDivisor = shiftDivisor;
+				let shiftDivisor = Math.mulByTwo(shiftDivisor);
+				let numShift = numShift + 1;
+				}
+			if (numShift =0 ){
+				let numShift =1;
+				}
+			let result = result + twoToThe[numShift-1];
+			let x = x- beforShiftDivisor;
 		}
-
-
-		let q = Math.divideHelper(x,y+y);
-		let twoq =  Math.mulByTwo(q);
-		let qMuly = Math.multiply(twoq,y);
-		let z = x-qMuly;
-		if (z<y){
-			return twoq;
-			}	
-		let twoq = twoq +1;
-		
-		return twoq;
+		return result;
 	}
-	
 
 	
 }
