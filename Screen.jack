@@ -11,16 +11,43 @@
  */
 class Screen {
 
+    static Array screen;
     static boolean color;
+    static Array twoToThe;
 
     /** Initializes the Screen. */
     function void init() {
+        let screen = 16384;
         let color = true;
+
+        let twoToThe = Array.new(16);
+		let twoToThe[0] = 1;
+		let twoToThe[1] = 2;
+		let twoToThe[2] = 4;
+		let twoToThe[3] = 8;
+		let twoToThe[4] = 16;
+		let twoToThe[5] = 32;
+		let twoToThe[6] = 64;
+		let twoToThe[7] = 128;
+		let twoToThe[8] = 256;
+		let twoToThe[9] = 512;
+		let twoToThe[10] = 1024;
+		let twoToThe[11] = 2048;
+		let twoToThe[12] = 4096;
+		let twoToThe[13] = 8192;
+		let twoToThe[14] = 16384;
+		let twoToThe[15] = 16384+16384;
+
         return;
     }
 
     /** Erases the entire screen. */
     function void clearScreen() {
+        var boolean original_color;
+        let original_color = color;
+        let color = false;
+        do Screen.drawRectangle(0, 0, 511, 255);
+        let color = original_color;
         return;
     }
 
@@ -33,24 +60,23 @@ class Screen {
 
     /** Draws the (x,y) pixel, using the current color. */
     function void drawPixel(int x, int y) {
-        var int address, bit, word_in_row, new_word;
+        var int screen_address, bit, word_in_row, new_word;
         let word_in_row = Math.divide(x, 16);
-        let address = 16384 + (Math.multiply(y, 32)) + word_in_row;
-        let bit = Math.twoToThe[y - (Math.multiply(y, 32))];
+        let screen_address = (Math.multiply(y, 32)) + word_in_row;
+        let bit = twoToThe[(x & 15)];
         if (color) {
-            let new_word = Memory.peek(address) | bit;
+            let new_word = screen[screen_address] | bit;
         }
         else {
-            let new_word = Memory.peek(address) & ~bit;
+            let new_word = screen[screen_address] & ~bit;
         }
-        do Memory.poke(address, new_word);
+        let screen[screen_address] = new_word;
         return;
     }
 
     /** Draws a line from pixel (x1,y1) to pixel (x2,y2), using the current color. */
     function void drawLine(int x1, int y1, int x2, int y2) {
-        var int azimuth;  // This is ady-bdx
-        var int a, b, dx, dy, temp;
+        var int temp;
         if (x1 = x2) {
             do Screen.drawVerticalLine(x1, y1, y2);
         }
@@ -58,33 +84,66 @@ class Screen {
             do Screen.drawHorizontalLine(x1, x2, y1);
         }
         else {
-            if (x2 < x1) {
+            if (y2 > y1) {
+                if (x2 > x1) {
+                    do Screen.drawRightUpwardLine(x1, y1, x2-x1, y2-y1);
+                }
+                else {
+                    do Screen.drawLeftUpwardLine(x1, y1, x1-x2, y2-y1);
+                }
+            }
+            else {
                 let temp = x1;
                 let x1 = x2;
-                let x2 = temp;  // Ensures that x1 < x2
-            }
-            let dx = x2-x1;
-            let dx = y2-y1;
-            let a = 0;
-            let b = 0;
-            if (y1 > y2) {
-                let dy = -dy;
-            }
-            while (~(a>dx) & ~(b>dy)) {
-                if (y2 > y1) {
-                    do Screen.drawPixel(x1+a, y1+b);
+                let x2 = temp;
+                let temp = y1;
+                let y1 = y2;
+                let y2 = temp;
+
+                if (x2 > x1) {
+                    do Screen.drawRightUpwardLine(x1, y1, x2-x1, y2-y1);
                 }
                 else {
-                    do Screen.drawPixel(x1+a, y1-b);
+                    do Screen.drawLeftUpwardLine(x1, y1, x1-x2, y2-y1);
                 }
-                if (azimuth > 0) {
-                    let b = b + 1;
-                    let azimuth = azimuth - dx;
-                }
-                else {
-                    let a = a + 1;
-                    let azimuth = azimuth + dy;
-                }
+            }
+        }
+        return;
+    }
+
+    function void drawRightUpwardLine(int x, int y, int dx, int dy) {
+        var int azimuth, a, b;
+        let azimuth = 0;
+        let a = 0;
+        let b = 0;
+        while (~(a>dx) & ~(b>dy)) {
+            do Screen.drawPixel(x+a, y+b);
+            if (azimuth < 0) {
+                let a = a + 1;
+                let azimuth = azimuth + dy;
+            }
+            else {
+                let b = b + 1;
+                let azimuth = azimuth - dx;
+            }
+        }
+        return;
+    }
+
+    function void drawLeftUpwardLine(int x, int y, int dx, int dy) {
+        var int azimuth, a, b;
+        let azimuth = 0;
+        let a = 0;
+        let b = 0;
+        while (~(a>dx) & ~(b>dy)) {
+            do Screen.drawPixel(x-a, y+b);
+            if (azimuth < 0) {
+                let a = a + 1;
+                let azimuth = azimuth + dy;
+            }
+            else {
+                let b = b + 1;
+                let azimuth = azimuth - dx;
             }
         }
         return;
@@ -137,6 +196,13 @@ class Screen {
 
     /** Draws a filled circle of radius r<=181 around (x,y), using the current color. */
     function void drawCircle(int x, int y, int r) {
+        var int latitude, half_width;
+        let latitude = y - r;
+        while (~(latitude > (y+r))) {
+            let half_width = Math.sqrt((Math.multiply(r,r))-Math.multiply((y-latitude),(y-latitude)));
+            do Screen.drawHorizontalLine(x-half_width, x+half_width, latitude);
+            let latitude = latitude + 1;
+        }
         return;
     }
 }

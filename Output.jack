@@ -17,10 +17,19 @@
 class Output {
 
     // Character map for displaying characters
-    static Array charMaps; 
+    static Array charMaps, screen;
+    static int cursor_col, cursor_row, word_in_screen_row;
+    static boolean odd_column;  // Indicates that the cursor is at an odd column
 
     /** Initializes the screen, and locates the cursor at the screen's top-left. */
     function void init() {
+        let cursor_col = 0;
+        let cursor_row = 0;
+        let odd_column = false;
+        let word_in_screen_row = 0;
+        let screen = 16384;
+        do Output.initMap();
+        return;
     }
 
     // Initializes the character map array
@@ -32,7 +41,7 @@ class Output {
         // Black square, used for displaying non-printable characters.
         do Output.create(0,63,63,63,63,63,63,63,63,63,0,0);
 
-        // Assigns the bitmap for each character in the charachter set.
+        // Assigns the bitmap for each character in the character set.
         // The first parameter is the character index, the next 11 numbers
         // are the values of each row in the frame that represents this character.
         do Output.create(32,0,0,0,0,0,0,0,0,0,0,0);          //
@@ -71,7 +80,7 @@ class Output {
         do Output.create(64,30,51,51,59,59,59,27,3,30,0,0);  // @
         do Output.create(63,30,51,51,24,12,12,0,12,12,0,0);  // ?
 
-        do Output.create(65,0,0,0,0,0,0,0,0,0,0,0);          // A ** TO BE FILLED **
+        do Output.create(65,12,30,51,51,63,51,51,51,51,0,0);          // A ** TO BE FILLED **
         do Output.create(66,31,51,51,51,31,51,51,51,31,0,0); // B
         do Output.create(67,28,54,35,3,3,3,35,54,28,0,0);    // C
         do Output.create(68,15,27,51,51,51,51,51,27,15,0,0); // D
@@ -176,28 +185,129 @@ class Output {
     /** Moves the cursor to the j-th column of the i-th row,
      *  and erases the character displayed there. */
     function void moveCursor(int i, int j) {
+        var int twice_half_column;
+        let cursor_col = j;
+        let cursor_row = i;
+        let twice_half_column = Math.multiply(Math.divide(j,2),2);
+        if (j > twice_half_column) {  // Indicates j is odd.
+            let odd_column = true;
+        }
+        else {
+            let odd_column = false;
+        }
+        let word_in_screen_row = Math.divide(j,2);
+        do Output.clean_cursor_position();
+        return;
     }
 
     /** Displays the given character at the cursor location,
      *  and advances the cursor one column forward. */
     function void printChar(char c) {
+        var int char_line, i, screen_index, new_word;
+        var Array char_map;
+        let char_map = Output.getMap(c);
+        let i = 0;
+        let screen_index = Math.multiply(cursor_row, 352) + word_in_screen_row;
+        while (i < 11) {
+            let screen_index = screen_index + 32;
+            let char_line = char_map[i];
+            if (odd_column) {
+                let char_line = Math.multiply(char_line, 256);
+            }
+            let new_word = screen[screen_index] | char_line;  // The new bit-word containing the character
+            let screen[screen_index] = new_word;
+            let i = i + 1;
+        }
+        do Output.advance_cursor();
+        return;
+    }
+
+    function void advance_cursor() {
+        if (cursor_col = 63) {  // Cursor is currently at end of line.
+            let cursor_row = cursor_row + 1;
+            let cursor_col = 0;
+            let word_in_screen_row = -1;  // This makes sense because then we advance the word by 1.
+            if (cursor_row = 23) {
+                let cursor_row = 0;
+            }
+        }
+        else {
+            let cursor_col = cursor_col + 1;
+        }
+        let odd_column = ~odd_column;
+        if (~odd_column) {  // Meaning we reached a new word in the screen RAM.
+            let word_in_screen_row = word_in_screen_row + 1;
+        }
+        do Output.clean_cursor_position();
+        return;
+    }
+
+    function void clean_cursor_position() {
+        var int cleaner, screen_index, new_word, i;
+        let i = 0;
+        if (odd_column) {
+            let cleaner = 255;
+        }
+        else {
+            let cleaner = ~255;
+        }
+        let screen_index = Math.multiply(cursor_row, 352) + word_in_screen_row;
+        while (i < 8) {
+            let new_word = screen[screen_index] & cleaner;
+            let screen_index = screen_index + 32;
+            let i = i + 1;
+        }
+        return;
     }
 
     /** displays the given string starting at the cursor location,
      *  and advances the cursor appropriately. */
     function void printString(String s) {
+        var int i, length;
+        let i = 0;
+        let length = s.length();
+        while (i < length) {
+            do Output.printChar(s.charAt(i));
+            let i = i + 1;
+        }
+        return;
     }
 
     /** Displays the given integer starting at the cursor location,
      *  and advances the cursor appropriately. */
     function void printInt(int i) {
+        var String str;
+        let str = String.new(6);
+        do str.setInt(i);
+        do Output.printString(str);
+        return;
     }
 
     /** Advances the cursor to the beginning of the next line. */
     function void println() {
+        do Output.moveCursor(cursor_row + 1, 0);
+        return;
     }
 
     /** Moves the cursor one column back. */
     function void backSpace() {
+        if (cursor_col = 0) {  // Cursor is currently at beginning of line.
+            let cursor_row = cursor_row - 1;
+            let cursor_col = 63;
+            let word_in_screen_row = 32;  // This makes sense because then we later backtrack by 1.
+            if (cursor_row = -1) {  // If we backspaced from 0,0 position the cursor stays put.
+                let cursor_row = 0;
+                let cursor_col = 0;
+            }
+        }
+        else {
+            let cursor_col = cursor_col - 1;
+        }
+        let odd_column = ~odd_column;
+        if (odd_column) {  // Meaning we reached a new word in the screen RAM.
+            let word_in_screen_row = word_in_screen_row - 1;
+        }
+        do Output.clean_cursor_position();
+        return;
     }
 }
