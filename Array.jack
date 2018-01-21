@@ -12,7 +12,7 @@ class Array {
 
     /** Constructs a new Array of the given size. */
     function Array new(int size) {
-		return Memory.alloc(size)
+		return Memory.alloc(size);
 		
     }
 
