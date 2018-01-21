@@ -43,11 +43,12 @@ class Screen {
 
     /** Erases the entire screen. */
     function void clearScreen() {
-        var boolean original_color;
-        let original_color = color;
-        let color = false;
-        do Screen.drawRectangle(0, 0, 511, 255);
-        let color = original_color;
+        var int counter;
+        let counter = 8191;  // Number of words in screen RAM.
+        while (~(counter < 0)) {
+            let screen[counter] = 0;
+            let counter = counter - 1;
+        }
         return;
     }
 
@@ -152,7 +153,7 @@ class Screen {
     function void drawVerticalLine(int x, int y1, int y2){
         var int length, a, temp;
         if (y2 < y1) {
-            let y1 = temp;
+            let temp = y1;
             let y1 = y2;
             let y2 = temp;
         }
@@ -168,7 +169,7 @@ class Screen {
     function void drawHorizontalLine(int x1, int x2, int y){
         var int length, a, temp;
         if (x2 < x1) {
-            let x1 = temp;
+            let temp = x1;
             let x1 = x2;
             let x2 = temp;
         }

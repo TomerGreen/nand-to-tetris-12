@@ -81,7 +81,7 @@ class Keyboard {
             }
         }
         return line;
-    }   
+    }
 
     /**								
      * Displays the message on the screen, reads from the keyboard the entered
